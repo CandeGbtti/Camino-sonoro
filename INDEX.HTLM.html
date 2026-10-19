@@ -1,0 +1,1085 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Camino Sonoro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@500;700&display=swap">
+<style>
+/* Layout: pantallas que se reemplazan (inicio, instrucciones, voz y sonido, ejercicio). En el ejercicio: tablero grande, programa en bloques y panel del docente abajo. */
+:root{
+  --bg:#E8EDF4; --surface:#FFFFFF; --ink:#131925; --muted:#475266; --line:#C6D0DE;
+  --accent:#1D4ED0; --accent-ink:#FFFFFF; --accent-soft:#DCE6FF; --hero:#EE6420; --goal:#FFC01A; --rock:#394050;
+  --cell:#F6F8FB; --trail:#D3E2FF; --ok:#13773A; --bad:#BF2530; --rep:#7A3FC2; --rep-soft:#EFE6FB;
+  --f-display:"Lexend", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D121B; --surface:#161D2A; --ink:#EEF2F8; --muted:#A6B0C2; --line:#2B3546;
+  --accent:#86A6FF; --accent-ink:#0D121B; --accent-soft:#1F2E52; --hero:#FF8A4A; --goal:#FFD34F; --rock:#8C96AA;
+  --cell:#1D2637; --trail:#243A66; --ok:#4FCB7E; --bad:#FF6F6F; --rep:#C29BFF; --rep-soft:#2A2140; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0D121B; --surface:#161D2A; --ink:#EEF2F8; --muted:#A6B0C2; --line:#2B3546;
+  --accent:#86A6FF; --accent-ink:#0D121B; --accent-soft:#1F2E52; --hero:#FF8A4A; --goal:#FFD34F; --rock:#8C96AA;
+  --cell:#1D2637; --trail:#243A66; --ok:#4FCB7E; --bad:#FF6F6F; --rep:#C29BFF; --rep-soft:#2A2140; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:18px}
+.screen{display:flex;flex-direction:column;gap:18px;outline:none}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5vw,48px);margin:0;letter-spacing:-.01em;line-height:1.05;text-wrap:balance}
+h1 span{color:var(--hero)}
+h2{font-family:var(--f-display);font-weight:600;font-size:clamp(22px,3vw,28px);margin:0}
+h3{font-family:var(--f-display);font-weight:600;font-size:17px;margin:0}
+.sub{margin:4px 0 0;color:var(--muted);max-width:60ch}
+button,select,input{font:inherit;color:inherit}
+.btn{border:2px solid var(--ink);background:var(--surface);border-radius:999px;padding:8px 16px;font-weight:700;cursor:pointer}
+.btn:hover{background:var(--cell)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.warn{border-color:var(--hero);color:var(--ink)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--hero);outline-offset:2px}
+
+.topbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 12px;font-weight:700;font-size:15px;border:2px solid var(--line);background:var(--surface)}
+.chip.kb .dot{width:10px;height:10px;border-radius:50%;background:var(--bad)}
+body.kbd-on .chip.kb .dot{background:var(--ok)}
+.chip.kb .on{display:none}
+body.kbd-on .chip.kb .on{display:inline}
+body.kbd-on .chip.kb .off{display:none}
+
+.caption{border-radius:12px;background:var(--surface);border:2px dashed var(--line);padding:10px 14px;min-height:52px;display:flex;gap:10px;align-items:flex-start}
+.caption b{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);white-space:nowrap;padding-top:4px}
+.said{font-size:18px}
+.caption.good{border-color:var(--ok);border-style:solid}
+.caption.badc{border-color:var(--bad);border-style:solid}
+
+/* menús grandes (inicio, instrucciones, ajustes) */
+.hero-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.hero-head svg{width:84px;height:84px;flex:none}
+.menu{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;max-width:760px}
+.opt{display:flex;align-items:stretch;gap:0;border:3px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden}
+.opt.sel{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.opt .main{flex:1;min-width:0;display:flex;align-items:center;gap:16px;background:none;border:0;padding:16px 18px;text-align:left;cursor:pointer}
+.opt.sel .main{background:var(--accent-soft)}
+.num{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:22px;background:var(--ink);color:var(--surface)}
+.opt.sel .num{background:var(--accent);color:var(--accent-ink)}
+.lab{display:flex;flex-direction:column;min-width:0}
+.lab b{font-family:var(--f-display);font-size:clamp(20px,3vw,26px);font-weight:600;line-height:1.2}
+.lab small{font-size:16px;color:var(--muted)}
+.opt .side-btn{flex:none;border:0;border-left:2px solid var(--line);background:var(--cell);font-size:24px;font-weight:700;width:56px;cursor:pointer}
+.opt .side-btn:hover{background:var(--accent-soft)}
+.hintline{color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+kbd{font-family:var(--f-body);font-weight:700;background:var(--surface);border:2px solid var(--line);border-bottom-width:4px;border-radius:7px;padding:1px 8px;white-space:nowrap;font-size:14px;color:var(--ink)}
+.instr-text{font-size:17px;color:var(--ink);margin-top:4px;line-height:1.5}
+
+/* ejercicio */
+#play{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;background:var(--surface);border:3px solid var(--line);border-radius:18px;padding:18px}
+@media (max-width:820px){#play{grid-template-columns:minmax(0,1fr)}}
+.statusbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;grid-column:1/-1}
+.chip.mode{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.chip.mode.practica{background:var(--hero);border-color:var(--hero);color:#1a0d05}
+.chip.stars{border-color:var(--goal)}
+.chal-name{font-family:var(--f-display);font-weight:600;margin-left:auto}
+.boardwrap{min-width:0;display:flex;flex-direction:column;gap:12px}
+.board{display:grid;grid-template-columns:28px repeat(var(--cols),minmax(0,1fr));gap:5px;width:100%;max-width:calc(var(--cols) * 92px + 28px);margin:0 auto}
+.hd{font-size:13px;font-weight:700;color:var(--muted);display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.cell{aspect-ratio:1;max-width:100%;background:var(--cell);border:2px solid var(--line);border-radius:var(--r);display:grid;place-items:center;position:relative;overflow:hidden}
+.cell.trail{background:var(--trail)}
+.cell svg{width:78%;height:78%;grid-area:1/1}
+.cell svg.got{opacity:.22}
+.board.editing .cell{cursor:crosshair}
+.cell.cur{outline:5px solid var(--hero);outline-offset:-5px}
+.endpanel{border:3px solid var(--ok);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.endpanel h3{color:var(--ok);font-size:22px}
+.endpanel .lab b{font-size:20px}
+.board.editing .cell:hover{border-color:var(--accent)}
+.cell.bump .hero{animation:bump .35s}
+.cell.win .hero{animation:hop .5s 2}
+.cell.pick svg:not(.hero){animation:pop .4s}
+@keyframes bump{25%{transform:translateX(-8%)}50%{transform:translateX(8%)}75%{transform:translateX(-4%)}}
+@keyframes hop{50%{transform:translateY(-14%) scale(1.06)}}
+@keyframes pop{50%{transform:scale(1.3)}}
+@media (prefers-reduced-motion:reduce){.cell.bump .hero,.cell.win .hero,.cell.pick svg{animation:none}}
+.side{min-width:0;display:flex;flex-direction:column;gap:12px}
+.prog-box{border:2px solid var(--line);border-radius:14px;padding:12px;min-height:170px;display:flex;flex-direction:column;gap:10px}
+.prog-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.count{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+ol.prog,ol.inner{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.blk{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:5px 10px;font-weight:700;font-size:16px}
+.blk .ar{font-size:20px;line-height:1}
+.blk.active{outline:4px solid var(--hero);outline-offset:1px}
+.rep{flex-basis:100%;border:3px solid var(--rep);background:var(--rep-soft);border-radius:10px;padding:6px 8px 8px;display:flex;flex-direction:column;gap:6px}
+.rep.active{outline:4px solid var(--hero)}
+.rep-h{font-weight:700;color:var(--rep);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rep-h small{font-weight:400;color:var(--muted)}
+.rep .blk{background:var(--rep);color:var(--surface)}
+.empty{color:var(--muted);font-style:italic}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font-size:15px;align-items:center;margin-top:8px}
+.keys .k{display:flex;gap:4px;flex-wrap:wrap}
+details.keyhelp summary{cursor:pointer;font-weight:700}
+.game-actions{display:flex;flex-wrap:wrap;gap:8px}
+
+.teacher{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700}
+label.f{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:15px}
+select,input[type=text]{border:2px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--surface);width:100%}
+.seg{display:flex;border:2px solid var(--ink);border-radius:999px;overflow:hidden}
+.seg button{flex:1;border:0;background:transparent;padding:8px 10px;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row > label.f{flex:1;min-width:110px}
+.tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.tools button{border:2px solid var(--line);background:var(--cell);border-radius:10px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:13px;font-weight:700;cursor:pointer}
+.tools button svg{width:30px;height:30px}
+.tools button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
+.note{font-size:14px;color:var(--muted);margin:0}
+.tactile{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.tactile li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;font-size:15px}
+.tactile svg{width:34px;height:34px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <span class="chip kb"><span class="dot"></span><span class="on">Teclado listo</span><span class="off">Hacé clic en la página para usar el teclado</span></span>
+  </div>
+
+  <!-- ===== INICIO ===== -->
+  <section class="screen" id="home" tabindex="-1" role="application" aria-label="Camino Sonoro. Menú de inicio. Usá flecha arriba y abajo para elegir y Enter para entrar.">
+    <div class="hero-head">
+      <span data-ico="hero"></span>
+      <div>
+        <h1>Camino <span>Sonoro</span></h1>
+        <p class="sub">Ayudá al personaje a juntar estrellas. Se juega con las flechas, la voz y los sonidos, junto al tablero táctil.</p>
+      </div>
+    </div>
+    <ul class="menu" id="menu"></ul>
+    <div class="hintline"><span><kbd>↑</kbd> <kbd>↓</kbd> elegir</span><span><kbd>Enter</kbd> entrar</span><span><kbd>←</kbd> <kbd>→</kbd> cambiar desafío</span><span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> ir directo</span></div>
+    <div class="caption"><b>Dice</b><span class="said">Apretá cualquier tecla para escuchar el menú.</span></div>
+  </section>
+
+  <!-- ===== INSTRUCCIONES ===== -->
+  <section class="screen" id="instr" tabindex="-1" role="application" aria-label="Instrucciones. Flecha abajo para escuchar la siguiente." hidden>
+    <h2>Instrucciones</h2>
+    <ul class="menu" id="instrList"></ul>
+    <div class="hintline"><span><kbd>↓</kbd> siguiente</span><span><kbd>↑</kbd> anterior</span><span><kbd>Enter</kbd> escuchar otra vez</span><span><kbd>Esc</kbd> volver al menú</span></div>
+    <div class="caption"><b>Dice</b><span class="said"></span></div>
+  </section>
+
+  <!-- ===== VOZ Y SONIDO ===== -->
+  <section class="screen" id="settings" tabindex="-1" role="application" aria-label="Voz y sonido. Flechas arriba y abajo para elegir, izquierda y derecha para cambiar." hidden>
+    <h2>Voz y sonido</h2>
+    <ul class="menu" id="setList"></ul>
+    <div class="hintline"><span><kbd>↑</kbd> <kbd>↓</kbd> elegir</span><span><kbd>←</kbd> <kbd>→</kbd> cambiar</span><span><kbd>Enter</kbd> probar o volver</span><span><kbd>Esc</kbd> volver</span></div>
+    <div class="caption"><b>Dice</b><span class="said"></span></div>
+  </section>
+
+  <!-- ===== EJERCICIO ===== -->
+  <section class="screen" id="game" tabindex="-1" role="application" aria-label="Ejercicio Camino Sonoro. Apretá A para escuchar la ayuda." hidden>
+    <div id="play">
+      <div class="statusbar">
+        <span class="chip mode" id="modeChip">Modo programa</span>
+        <span class="chip stars" id="starChip"></span>
+        <span class="chal-name" id="chalName"></span>
+      </div>
+      <div class="boardwrap">
+        <div class="board" id="board" aria-hidden="true"></div>
+        <div class="caption" id="gameCaption"><b>Dice</b><span class="said"></span></div>
+        <div class="endpanel" id="endPanel" hidden>
+          <h3>¡Ejercicio terminado! ¿Qué querés hacer?</h3>
+          <ul class="menu" id="endList"></ul>
+        </div>
+        <div class="game-actions">
+          <button class="btn warn" id="restartBtn">↺ Reiniciar ejercicio <kbd>N</kbd></button>
+          <button class="btn" id="homeBtn">Menú <kbd>Esc</kbd> <kbd>Esc</kbd></button>
+          <button class="btn" id="setBtn">Voz y sonido</button>
+        </div>
+      </div>
+      <div class="side">
+        <div class="prog-box">
+          <div class="prog-head"><h3>Programa</h3><span class="count" id="count"></span></div>
+          <ol class="prog" id="prog" aria-hidden="true"></ol>
+        </div>
+        <details class="keyhelp" open>
+          <summary>Teclas</summary>
+          <div class="keys" id="keysProg">
+            <span class="k"><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd></span><span>Agregar un paso</span>
+            <span class="k"><kbd>R</kbd> + <kbd>2</kbd>…<kbd>9</kbd></span><span>Empezar a repetir esa cantidad de veces</span>
+            <span class="k"><kbd>Enter</kbd></span><span>Cerrar el repetir · Ejecutar el programa</span>
+            <span class="k"><kbd>Retroceso</kbd></span><span>Borrar el último paso</span>
+            <span class="k"><kbd>Espacio</kbd></span><span>Escuchar el programa</span>
+            <span class="k"><kbd>T</kbd></span><span>Describir el tablero</span>
+            <span class="k"><kbd>N</kbd></span><span>Reiniciar el ejercicio</span>
+            <span class="k"><kbd>M</kbd></span><span>Cambiar a modo práctica</span>
+            <span class="k"><kbd>Esc</kbd></span><span>Detener · dos veces: volver al menú</span>
+            <span class="k"><kbd>A</kbd></span><span>Ayuda con voz</span>
+          </div>
+          <div class="keys" id="keysPrac" hidden>
+            <span class="k"><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd></span><span>Moverse un paso</span>
+            <span class="k"><kbd>Espacio</kbd></span><span>¿Dónde estoy? ¿Dónde están las estrellas?</span>
+            <span class="k"><kbd>Enter</kbd> o <kbd>N</kbd></span><span>Reiniciar el ejercicio</span>
+            <span class="k"><kbd>T</kbd></span><span>Describir el tablero</span>
+            <span class="k"><kbd>M</kbd></span><span>Cambiar a modo programa</span>
+            <span class="k"><kbd>Esc</kbd> <kbd>Esc</kbd></span><span>Volver al menú</span>
+            <span class="k"><kbd>A</kbd></span><span>Ayuda con voz</span>
+          </div>
+          <div class="keys" id="keysEdit" hidden>
+            <span class="k"><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd></span><span>Mover el cursor por el tablero</span>
+            <span class="k"><kbd>E</kbd></span><span>Poner o sacar una estrella</span>
+            <span class="k"><kbd>O</kbd></span><span>Poner o sacar un obstáculo</span>
+            <span class="k"><kbd>P</kbd></span><span>Poner al personaje</span>
+            <span class="k"><kbd>B</kbd></span><span>Borrar la casilla</span>
+            <span class="k"><kbd>Mayús</kbd> + flechas</span><span>Cambiar el tamaño (→ ↓ agrandar, ← ↑ achicar)</span>
+            <span class="k"><kbd>Espacio</kbd></span><span>Describir el tablero</span>
+            <span class="k"><kbd>Enter</kbd></span><span>Guardar y jugar</span>
+            <span class="k"><kbd>Esc</kbd></span><span>Salir sin guardar</span>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="teacher">
+      <section class="card">
+        <span class="eyebrow">Para el docente</span>
+        <h3>Desafío y modo</h3>
+        <label class="f" for="chalSel">Desafío <select id="chalSel"></select></label>
+        <div class="seg" role="group" aria-label="Modo">
+          <button id="mProg" aria-pressed="true">Programa</button>
+          <button id="mPrac" aria-pressed="false">Práctica</button>
+        </div>
+        <p class="note" id="chalIntro"></p>
+        <div class="row">
+          <button class="btn" id="describeBtn">Describir tablero</button>
+          <button class="btn" id="hintBtn">Dar una pista</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Editor</span>
+        <h3>Crear un tablero</h3>
+        <div class="row">
+          <button class="btn" id="newBtn">Crear uno nuevo</button>
+          <button class="btn" id="editBtn" aria-pressed="false">Editar el tablero actual</button>
+        </div>
+        <div id="editor" hidden>
+          <div class="row" style="margin-bottom:8px">
+            <label class="f" for="colsSel">Columnas <select id="colsSel"></select></label>
+            <label class="f" for="rowsSel">Filas <select id="rowsSel"></select></label>
+          </div>
+          <div class="tools" role="group" aria-label="Qué poner">
+            <button data-tool="hero" aria-pressed="false"><span data-ico="hero"></span>Personaje</button>
+            <button data-tool="goal" aria-pressed="false"><span data-ico="goal"></span>Estrella</button>
+            <button data-tool="rock" aria-pressed="true"><span data-ico="rock"></span>Obstáculo</button>
+            <button data-tool="erase" aria-pressed="false"><span data-ico="erase"></span>Borrar</button>
+          </div>
+          <p class="note" style="margin-top:8px">Hacé clic en las casillas, o usá el teclado (las teclas están arriba, junto al programa). Podés poner varias estrellas: un clic pone y otro clic saca.</p>
+          <label class="f" for="nameIn" style="margin-top:6px">Nombre del desafío <input type="text" id="nameIn" placeholder="Ej.: Las estrellas de Juana"></label>
+          <div class="row" style="margin-top:8px">
+            <button class="btn primary" id="saveBtn">Guardar desafío</button>
+            <button class="btn" id="clearBtn">Sacar obstáculos</button>
+            <button class="btn" id="delBtn" hidden>Eliminar</button>
+          </div>
+          <p class="note" id="saveNote" style="margin-top:6px">Los desafíos se guardan en este navegador.</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Tablero físico</span>
+        <h3>Cómo armarlo en la mesa</h3>
+        <ul class="tactile">
+          <li><span data-ico="hero"></span><span><b>Personaje:</b> ficha redonda con relieve (tapita con botón pegado).</span></li>
+          <li><span data-ico="goal"></span><span><b>Estrellas:</b> de goma eva gruesa. El niño las saca del tablero a medida que las junta en la pantalla.</span></li>
+          <li><span data-ico="rock"></span><span><b>Obstáculo:</b> cuadrado de lija o un cubo de madera.</span></li>
+        </ul>
+        <p class="note">Usá una cuadrícula con bordes en relieve. Numerá las columnas de izquierda a derecha y las filas de arriba hacia abajo, igual que en la pantalla. Marcá la esquina de arriba a la izquierda con un punto táctil.</p>
+      </section>
+    </div>
+  </section>
+  <div id="live" class="sr" aria-live="assertive"></div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const DIRS = {
+  up:{dx:0,dy:-1,name:'arriba',ar:'↑'}, down:{dx:0,dy:1,name:'abajo',ar:'↓'},
+  left:{dx:-1,dy:0,name:'izquierda',ar:'←'}, right:{dx:1,dy:0,name:'derecha',ar:'→'}
+};
+const KEYDIR = {ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+
+const BUILTIN = [
+  {id:'b1',name:'1. Camino recto',cols:4,rows:3,start:[0,1],goals:[[3,1]],rocks:[],
+   intro:'El personaje camina derecho hasta la estrella.',hint:'La estrella está en la misma fila. Probá con la flecha derecha.'},
+  {id:'b2',name:'2. Doblar la esquina',cols:4,rows:4,start:[0,0],goals:[[2,2]],rocks:[],
+   intro:'La estrella está más abajo y a la derecha. Hay que doblar.',hint:'Primero andá a la derecha y después hacia abajo.'},
+  {id:'b3',name:'3. Esquivar la piedra',cols:5,rows:3,start:[0,1],goals:[[4,1]],rocks:[[2,1]],
+   intro:'Hay una piedra en el medio del camino. Hay que rodearla.',hint:'Cuando llegues cerca de la piedra, subí, pasala y volvé a bajar.'},
+  {id:'b4',name:'4. Dos estrellas arriba y abajo',cols:4,rows:3,start:[0,1],goals:[[3,0],[3,2]],rocks:[[2,0],[2,2]],
+   intro:'Hay dos estrellas al final del camino: una arriba y otra abajo. Hay que juntar las dos.',hint:'Andá 3 pasos a la derecha, subí a buscar una y después bajá a buscar la otra.'},
+  {id:'b5',name:'5. El pasillo largo (repetir)',cols:7,rows:1,start:[0,0],goals:[[6,0]],rocks:[],
+   intro:'Un pasillo muy largo. Con repetir no hace falta apretar tantas veces la flecha.',hint:'Apretá R, después el 6, después la flecha derecha y Enter para cerrar el repetir.'},
+  {id:'b6',name:'6. Estrellas en el pasillo (repetir)',cols:7,rows:1,start:[0,0],goals:[[2,0],[4,0],[6,0]],rocks:[],
+   intro:'Hay tres estrellas, cada dos pasos. Juntalas todas.',hint:'Repetí 3 veces: derecha, derecha.'},
+  {id:'b7',name:'7. La escalera (repetir)',cols:5,rows:5,start:[0,4],goals:[[1,3],[2,2],[3,1],[4,0]],
+   rocks:[[0,3],[1,2],[2,1],[3,0],[2,4],[3,3],[4,2]],
+   intro:'El personaje sube una escalera y junta una estrella en cada escalón.',hint:'Repetí 4 veces: derecha y arriba.'}
+];
+
+const ICONS = {
+  hero:`<svg class="hero" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="52" r="38" fill="var(--hero)" stroke="var(--ink)" stroke-width="5"/><circle cx="37" cy="45" r="6" fill="var(--ink)"/><circle cx="63" cy="45" r="6" fill="var(--ink)"/><path d="M35 63 Q50 76 65 63" fill="none" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/></svg>`,
+  goal:`<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,7 62,37 94,38 69,58 78,90 50,72 22,90 31,58 6,38 38,37" fill="var(--goal)" stroke="var(--ink)" stroke-width="5" stroke-linejoin="round"/></svg>`,
+  goalGot:`<svg class="got" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,7 62,37 94,38 69,58 78,90 50,72 22,90 31,58 6,38 38,37" fill="none" stroke="var(--ink)" stroke-width="5" stroke-dasharray="8 7" stroke-linejoin="round"/></svg>`,
+  rock:`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="var(--rock)"/><line x1="0" y1="0" x2="0" y2="10" stroke="var(--cell)" stroke-width="2.5" opacity=".45"/></pattern></defs><rect x="10" y="10" width="80" height="80" rx="12" fill="url(#hatch)" stroke="var(--ink)" stroke-width="5"/></svg>`,
+  erase:`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M25 25 L75 75 M75 25 L25 75" stroke="var(--bad)" stroke-width="10" stroke-linecap="round"/></svg>`
+};
+document.querySelectorAll('[data-ico]').forEach(el => el.outerHTML = ICONS[el.dataset.ico]);
+
+/* ---------- utilidades ---------- */
+const clone = o => JSON.parse(JSON.stringify(o));
+const eq = (a,b) => a[0]===b[0] && a[1]===b[1];
+const key = p => p[0]+','+p[1];
+const wait = ms => new Promise(r=>setTimeout(r,ms));
+const plural = (n,a,b) => n===1 ? a : b;
+function store(k, v){ try{ if(v===undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return v===undefined ? null : false; } }
+function normalize(b){ b = clone(b); if(!b.goals) b.goals = b.goal ? [b.goal] : []; delete b.goal; b.rocks = b.rocks||[]; return b; }
+
+/* ---------- estado ---------- */
+let custom = (store('caminoSonoro.custom')||[]).map(normalize);
+let board = normalize(BUILTIN[0]);
+let pos = [...board.start], trail = [], got = new Set();
+let mode = 'programa', program = [], open = null, awaitingCount = false;
+let running = false, stopFlag = false, dirty = false;
+let editing = false, tool = 'rock';
+let active = null, fx = {cell:null, cls:''};
+let screen = 'home', prevScreen = 'home', greeted = false, escAt = 0;
+let menuIdx = 0, instrIdx = 0, setIdx = 0;
+let endOpen = false, endIdx = 1, cursor = [0,0], editBackup = null;
+
+const saved = store('caminoSonoro.settings') || {};
+const S = {speed: saved.speed||'normal', vol: saved.vol||0.8, voiceName: saved.voiceName||'', useSR: !!saved.useSR, voice:null};
+const SPEED = {slow:{rate:.85,pause:650}, normal:{rate:1,pause:250}, fast:{rate:1.2,pause:40}};
+const saveSettings = () => store('caminoSonoro.settings', {speed:S.speed, vol:S.vol, voiceName:S.voiceName, useSR:S.useSR});
+const allBoards = () => [...BUILTIN.map(normalize), ...custom];
+
+/* ---------- sonido ---------- */
+let ac = null, master = null;
+function audio(){
+  try{
+    if(!ac){ ac = new (window.AudioContext||window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = S.vol; master.connect(ac.destination); }
+    if(ac.state === 'suspended') ac.resume();
+  }catch(e){}
+  return ac;
+}
+function out(a, node, pan){
+  if(a.createStereoPanner){ const p = a.createStereoPanner(); p.pan.value = Math.max(-1,Math.min(1,pan||0)); node.connect(p); p.connect(master); }
+  else node.connect(master);
+}
+function tone(freq, dur=.12, o={}){
+  const a = audio(); if(!a) return;
+  const t = a.currentTime + (o.when||0);
+  const osc = a.createOscillator(), g = a.createGain();
+  osc.type = o.type||'sine';
+  osc.frequency.setValueAtTime(freq, t);
+  if(o.slide) osc.frequency.exponentialRampToValueAtTime(o.slide, t+dur);
+  g.gain.setValueAtTime(.0001, t);
+  g.gain.exponentialRampToValueAtTime(o.gain||.22, t+.012);
+  g.gain.exponentialRampToValueAtTime(.0001, t+dur);
+  osc.connect(g); out(a, g, o.pan);
+  osc.start(t); osc.stop(t+dur+.03);
+}
+function noise(dur=.25, gain=.3, pan=0){
+  const a = audio(); if(!a) return;
+  const len = Math.floor(a.sampleRate*dur), buf = a.createBuffer(1,len,a.sampleRate), d = buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i] = (Math.random()*2-1)*(1-i/len);
+  const src = a.createBufferSource(); src.buffer = buf;
+  const f = a.createBiquadFilter(); f.type='lowpass'; f.frequency.value = 900;
+  const g = a.createGain(); g.gain.value = gain;
+  src.connect(f); f.connect(g); out(a, g, pan); src.start();
+}
+const panOf = x => board.cols>1 ? (x/(board.cols-1))*2-1 : 0;
+const pitchOf = y => 300*Math.pow(2, board.rows>1 ? (board.rows-1-y)/(board.rows-1) : .5);
+const ADD = {up:[660,0],down:[330,0],left:[460,-.85],right:[460,.85]};
+const SND = {
+  add(dir){ tone(ADD[dir][0],.13,{type:'triangle',pan:ADD[dir][1]}); },
+  addIn(dir){ tone(ADD[dir][0],.13,{type:'square',gain:.09,pan:ADD[dir][1]}); },
+  step(x,y){ const f=pitchOf(y), p=panOf(x); tone(f,.09,{type:'triangle',pan:p}); tone(f*1.5,.07,{type:'triangle',pan:p,when:.07,gain:.15}); },
+  crash(x){ noise(.3,.45,panOf(x)); tone(140,.3,{type:'square',slide:55,gain:.12,pan:panOf(x)}); },
+  collect(x){ [988,1319].forEach((f,i)=>tone(f,.14,{type:'sine',pan:panOf(x),when:i*.08,gain:.2})); },
+  win(){ [523,659,784,1047].forEach((f,i)=>tone(f,.22,{type:'triangle',when:i*.12})); tone(1319,.5,{when:.5,gain:.15}); },
+  repOpen(){ tone(392,.12); tone(587,.16,{when:.11}); },
+  repClose(){ tone(587,.12); tone(392,.16,{when:.11}); },
+  del(){ tone(520,.16,{slide:240}); },
+  err(){ tone(170,.18,{type:'square',gain:.08}); },
+  lap(){ tone(880,.08,{gain:.12}); },
+  move(){ tone(520,.06,{type:'triangle',gain:.12}); },
+  enter(){ tone(440,.08,{gain:.15}); tone(660,.1,{gain:.15,when:.07}); },
+  back(){ tone(660,.08,{gain:.15}); tone(440,.1,{gain:.15,when:.07}); },
+  beacon(){ remaining().forEach((g,i)=>[0,.14].forEach(w=>tone(pitchOf(g[1])*2,.1,{pan:panOf(g[0]),when:i*.42+w,gain:.18}))); }
+};
+
+/* ---------- voz ---------- */
+const esVoices = () => ('speechSynthesis' in window) ? speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang)) : [];
+function applyVoice(){
+  const vs = esVoices();
+  S.voice = vs.find(v=>v.name===S.voiceName) || null;
+  if(!S.voice){
+    for(const p of ['es-AR','es-419','es-US','es-MX','es-ES']){ const v = vs.find(v=>v.lang.replace('_','-')===p); if(v){ S.voice=v; break; } }
+    if(!S.voice && vs.length) S.voice = vs[0];
+  }
+}
+if('speechSynthesis' in window){ applyVoice(); speechSynthesis.onvoiceschanged = () => { applyVoice(); if(screen==='settings') renderSettings(); }; }
+
+let speakTok = 0;
+function showSaid(text, kind){
+  const scr = document.getElementById(screen);
+  const sp = scr && scr.querySelector('.said'); if(sp) sp.textContent = text;
+  const c = sp && sp.closest('.caption');
+  if(c){ c.classList.toggle('good', kind==='good'); c.classList.toggle('badc', kind==='bad'); }
+}
+function speak(text, kind){
+  showSaid(text, kind);
+  const est = 500 + text.length*70/SPEED[S.speed].rate;
+  if(S.useSR || !('speechSynthesis' in window)){
+    const l = $('#live'); l.textContent=''; setTimeout(()=>l.textContent=text, 30);
+    return wait(S.useSR ? est : 300);
+  }
+  const tok = ++speakTok;
+  speechSynthesis.cancel();
+  return new Promise(res=>{
+    let done=false; const fin=()=>{ if(!done){ done=true; res(); } };
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = S.voice ? S.voice.lang : 'es-AR';
+    if(S.voice) u.voice = S.voice;
+    u.rate = SPEED[S.speed].rate;
+    u.onend = fin; u.onerror = fin;
+    setTimeout(fin, est + 2500);
+    setTimeout(()=>{ if(tok===speakTok) speechSynthesis.speak(u); else fin(); }, 40);
+  });
+}
+function hush(){ if('speechSynthesis' in window) speechSynthesis.cancel(); }
+
+/* ---------- textos del tablero ---------- */
+const remaining = () => board.goals.filter(g=>!got.has(key(g)));
+const total = () => board.goals.length;
+const at = p => `columna ${p[0]+1}, fila ${p[1]+1}`;
+function rel(from, to){
+  const dx = to[0]-from[0], dy = to[1]-from[1], parts=[];
+  if(dx>0) parts.push(`${dx} ${plural(dx,'paso','pasos')} a la derecha`);
+  if(dx<0) parts.push(`${-dx} ${plural(-dx,'paso','pasos')} a la izquierda`);
+  if(dy<0) parts.push(`${-dy} ${plural(-dy,'paso','pasos')} arriba`);
+  if(dy>0) parts.push(`${dy} ${plural(dy,'paso','pasos')} abajo`);
+  return parts.join(' y ');
+}
+function describe(){
+  const r = board.rocks, g = board.goals;
+  let t = `Tablero de ${board.cols} ${plural(board.cols,'columna','columnas')} y ${board.rows} ${plural(board.rows,'fila','filas')}. `;
+  t += `El personaje está en la ${at(board.start)}. `;
+  t += g.length===1 ? `La estrella está en la ${at(g[0])}. ` : `Hay ${g.length} estrellas para juntar: ${g.map(p=>'en la '+at(p)).join('; ')}. `;
+  t += r.length ? `${r.length===1?'Hay un obstáculo':'Hay '+r.length+' obstáculos'}: ${r.map(p=>'en la '+at(p)).join('; ')}.` : 'No hay obstáculos.';
+  return t;
+}
+function whereAmI(){
+  const rem = remaining();
+  if(!rem.length) return `Estás en la ${at(pos)}. Ya juntaste todas las estrellas.`;
+  const near = rem.slice().sort((a,b)=>(Math.abs(a[0]-pos[0])+Math.abs(a[1]-pos[1]))-(Math.abs(b[0]-pos[0])+Math.abs(b[1]-pos[1])))[0];
+  const which = rem.length===1 ? 'La estrella está' : 'La estrella más cerca está';
+  const left = total()>1 ? ` Te ${rem.length===1?'falta 1 estrella':'faltan '+rem.length+' estrellas'}.` : '';
+  return `Estás en la ${at(pos)}. ${which} ${rel(pos, near)}.${left}`;
+}
+function progText(items){
+  return items.map(it => it.type==='move' ? DIRS[it.dir].name
+    : `repetir ${it.times??'¿cuántas?'} veces: ${it.body.map(b=>DIRS[b.dir].name).join(', ')||'nada todavía'}, fin del repetir`).join(', ');
+}
+const countSteps = () => program.reduce((n,it)=> n + (it.type==='move'?1:1+it.body.length), 0);
+const modePrompt = () => mode==='programa'
+  ? 'Armá el camino con las flechas y apretá Enter para que el personaje lo haga.'
+  : 'Cada flecha mueve al personaje un paso. Apretá espacio para saber dónde estás.';
+
+/* ---------- pantallas ---------- */
+function show(id){
+  if(id==='settings' && screen!=='settings') prevScreen = screen;
+  screen = id;
+  ['home','instr','settings','game'].forEach(s => document.getElementById(s).hidden = s!==id);
+  if(id==='home') renderMenu();
+  if(id==='instr') renderInstr();
+  if(id==='settings') renderSettings();
+  if(id==='game'){ editing && toggleEdit(false); render(); }
+  document.getElementById(id).focus({preventScroll:false});
+  window.scrollTo({top:0});
+}
+
+/* --- inicio --- */
+const MENU = [
+  {id:'play', label:'Jugar', sub:()=>`Desafío: ${board.name}`},
+  {id:'instr', label:'Instrucciones', sub:()=>'Cómo se juega y qué hace cada tecla'},
+  {id:'settings', label:'Voz y sonido', sub:()=>'Velocidad, volumen y voz'}
+];
+function renderMenu(){
+  $('#menu').innerHTML = MENU.map((m,i)=>`
+    <li class="opt${i===menuIdx?' sel':''}">
+      ${m.id==='play'?'<button class="side-btn" data-chal="-1" aria-label="Desafío anterior">‹</button>':''}
+      <button class="main" data-i="${i}"><span class="num">${i+1}</span><span class="lab"><b>${m.label}</b><small>${m.sub()}</small></span></button>
+      ${m.id==='play'?'<button class="side-btn" data-chal="1" aria-label="Desafío siguiente">›</button>':''}
+    </li>`).join('');
+}
+function sayMenuItem(){
+  const m = MENU[menuIdx];
+  const extra = m.id==='play' ? `. ${board.name}. Flechas izquierda y derecha para cambiar de desafío.` : '';
+  return speak(`${menuIdx+1}, ${m.label}${extra}`);
+}
+function welcome(){
+  greeted = true;
+  speak(`Bienvenido a Camino Sonoro. Usá flecha arriba y abajo para elegir, y Enter para entrar. ${menuIdx+1}, ${MENU[menuIdx].label}.${MENU[menuIdx].id==='play'?' '+board.name+'.':''}`);
+}
+function cycleChallenge(d){
+  const list = allBoards(); let i = list.findIndex(b=>b.id===board.id); if(i<0) i=0;
+  i = (i + d + list.length) % list.length;
+  loadBoard(list[i], false); renderMenu(); SND.move();
+  speak(`${list[i].name}. ${list[i].intro||''}`);
+}
+function activate(i){
+  const m = MENU[i]; menuIdx = i; SND.enter();
+  if(m.id==='play') enterGame();
+  if(m.id==='instr'){ instrIdx = 0; show('instr'); sayInstr(); }
+  if(m.id==='settings'){ setIdx = 0; show('settings'); speak('Voz y sonido. ' + rowText(SET[0], true)); }
+}
+function enterGame(){
+  show('game');
+  speak(`${board.name}. ${board.intro||''} ${describe()} ${mode==='programa'?'Modo programa.':'Modo práctica.'} ${modePrompt()}`);
+}
+$('#menu').addEventListener('click', e=>{
+  audio();
+  const c = e.target.closest('[data-chal]'); if(c){ menuIdx=0; cycleChallenge(+c.dataset.chal); return; }
+  const b = e.target.closest('[data-i]'); if(b) activate(+b.dataset.i);
+});
+function homeKey(k){
+  if(!greeted && !['Enter',' '].includes(k)) { welcome(); return; }
+  if(k==='ArrowDown'||k==='ArrowUp'){ menuIdx = (menuIdx + (k==='ArrowDown'?1:-1) + MENU.length) % MENU.length; SND.move(); renderMenu(); return sayMenuItem(); }
+  if(k==='ArrowLeft'||k==='ArrowRight'){ if(MENU[menuIdx].id!=='play'){ menuIdx=0; } return cycleChallenge(k==='ArrowRight'?1:-1); }
+  if(k==='Enter'||k===' ') return activate(menuIdx);
+  if(/^[1-3]$/.test(k)) return activate(+k-1);
+  if(k.toLowerCase()==='a') return welcome();
+  SND.err(); speak('Usá las flechas arriba y abajo para elegir, y Enter para entrar.');
+}
+
+/* --- instrucciones --- */
+const INSTR = [
+  {t:'¿Qué es Camino Sonoro?', x:'Es un juego para aprender a programar. Vas a ayudar a un personaje a juntar estrellas, sin chocar con las paredes ni con los obstáculos.'},
+  {t:'El tablero', x:'Antes de jugar, tocá el tablero de la mesa. Tiene columnas y filas, como en la pantalla. La fila 1 está arriba y la columna 1 está a la izquierda. La ficha redonda es el personaje, las estrellas son lo que hay que juntar y los cuadrados ásperos son obstáculos.'},
+  {t:'Las estrellas', x:'Cuando el personaje pasa por una estrella, la junta y suena una campanita. Puede haber una sola estrella o varias. El juego termina cuando juntás todas.'},
+  {t:'Modo práctica', x:'Cada flecha mueve al personaje un paso. Con espacio sabés dónde estás y escuchás dónde están las estrellas. Si suena a la izquierda, está a la izquierda. Si suena agudo, está arriba.'},
+  {t:'Modo programa', x:'Primero armás todo el camino con las flechas, y el personaje no se mueve. Después apretás Enter y el personaje hace los pasos uno por uno.'},
+  {t:'Repetir', x:'Para repetir pasos, apretá erre, después un número, por ejemplo 3, después las flechas que se repiten, y Enter para cerrar.'},
+  {t:'Borrar y escuchar', x:'Retroceso borra el último paso. Espacio te lee el programa. Te te describe el tablero.'},
+  {t:'Reiniciar y salir', x:'Ene reinicia el ejercicio: el personaje vuelve al inicio, vuelven las estrellas y se borra el programa. Eme cambia de modo. Escape dos veces vuelve al menú.'},
+  {t:'Al terminar', x:'Cuando juntás todas las estrellas, el juego te pregunta qué querés hacer: 1, volver a empezar; 2, pasar al siguiente nivel; 3, crear un ejercicio.'},
+  {t:'Crear un ejercicio', x:'Movés un cursor por el tablero con las flechas. E pone una estrella, O pone un obstáculo, pe pone al personaje y be borra. Mayúscula con las flechas cambia el tamaño. Enter guarda y empezás a jugar.'},
+  {t:'Volver al menú', x:'Apretá Enter para volver al menú.', back:true}
+];
+function renderInstr(){
+  $('#instrList').innerHTML = INSTR.map((it,i)=>`
+    <li class="opt${i===instrIdx?' sel':''}"><button class="main" data-i="${i}"><span class="num">${it.back?'↩':i+1}</span><span class="lab"><b>${it.t}</b>${it.back?'':`<span class="instr-text">${it.x}</span>`}</span></button></li>`).join('');
+  const sel = $('#instrList .sel'); if(sel) sel.scrollIntoView({block:'nearest'});
+}
+function sayInstr(){ const it = INSTR[instrIdx]; renderInstr(); return speak(`${it.t}. ${it.x}${instrIdx===0?' Flecha abajo para escuchar la siguiente.':''}`); }
+$('#instrList').addEventListener('click', e=>{ audio(); const b=e.target.closest('[data-i]'); if(!b) return; instrIdx=+b.dataset.i; if(INSTR[instrIdx].back) return goHome(); sayInstr(); });
+function instrKey(k){
+  if(k==='ArrowDown'){ if(instrIdx<INSTR.length-1){ instrIdx++; SND.move(); } else SND.err(); return sayInstr(); }
+  if(k==='ArrowUp'){ if(instrIdx>0){ instrIdx--; SND.move(); } else SND.err(); return sayInstr(); }
+  if(k==='Enter'||k===' '){ if(INSTR[instrIdx].back) return goHome(); return sayInstr(); }
+  if(k==='Escape') return goHome();
+  SND.err(); speak('Flecha abajo para la siguiente instrucción. Escape para volver al menú.');
+}
+
+/* --- voz y sonido --- */
+const SET = [
+  {label:'Velocidad de la voz', opts:()=>[['slow','Lenta'],['normal','Normal'],['fast','Rápida']], get:()=>S.speed, set:v=>S.speed=v},
+  {label:'Volumen de los sonidos', opts:()=>[['0.35','Bajo'],['0.8','Medio'],['1.4','Alto']], get:()=>String(S.vol), set:v=>{ S.vol=+v; if(master) master.gain.value=S.vol; SND.collect(0); }},
+  {label:'Voz', opts:()=>[['','Automática'], ...esVoices().map(v=>[v.name, v.name])], get:()=>S.voiceName, set:v=>{ S.voiceName=v; applyVoice(); }},
+  {label:'Usar mi lector de pantalla', opts:()=>[['no','No'],['si','Sí']], get:()=>S.useSR?'si':'no', set:v=>{ S.useSR = v==='si'; hush(); }},
+  {label:'Probar sonido', action:()=>{ SND.win(); speak('Hola. Así suena Camino Sonoro.'); }},
+  {label:'Volver', action:()=>back()}
+];
+function curOpt(r){ const o=r.opts(); const i=o.findIndex(x=>x[0]===r.get()); return [o, i<0?0:i]; }
+function rowText(r, withHint){
+  if(r.action) return r.label + (withHint ? '. Apretá Enter.' : '');
+  const [o,i] = curOpt(r);
+  return `${r.label}: ${o[i][1]}.${withHint?' Flechas izquierda y derecha para cambiar.':''}`;
+}
+function renderSettings(){
+  $('#setList').innerHTML = SET.map((r,i)=>{
+    if(r.action) return `<li class="opt${i===setIdx?' sel':''}"><button class="main" data-i="${i}"><span class="num">${r.label==='Volver'?'↩':'♪'}</span><span class="lab"><b>${r.label}</b></span></button></li>`;
+    const [o,j] = curOpt(r);
+    return `<li class="opt${i===setIdx?' sel':''}"><button class="side-btn" data-i="${i}" data-d="-1" aria-label="Anterior">‹</button><button class="main" data-i="${i}"><span class="lab"><small>${r.label}</small><b>${o[j][1]}</b></span></button><button class="side-btn" data-i="${i}" data-d="1" aria-label="Siguiente">›</button></li>`;
+  }).join('');
+}
+function cycleSet(i, d){
+  const r = SET[i]; if(r.action) return;
+  const [o,j] = curOpt(r); const n = (j + d + o.length) % o.length;
+  r.set(o[n][0]); saveSettings(); renderSettings();
+  speak(`${r.label}: ${o[n][1]}`);
+}
+$('#setList').addEventListener('click', e=>{
+  audio(); const b = e.target.closest('[data-i]'); if(!b) return;
+  setIdx = +b.dataset.i; const r = SET[setIdx];
+  if(b.dataset.d) return cycleSet(setIdx, +b.dataset.d);
+  if(r.action) return r.action();
+  cycleSet(setIdx, 1);
+});
+function setKey(k){
+  if(k==='ArrowDown'||k==='ArrowUp'){ setIdx = (setIdx + (k==='ArrowDown'?1:-1) + SET.length) % SET.length; SND.move(); renderSettings(); return speak(rowText(SET[setIdx], true)); }
+  if(k==='ArrowLeft'||k==='ArrowRight') return SET[setIdx].action ? (SND.err(), speak(rowText(SET[setIdx], true))) : cycleSet(setIdx, k==='ArrowRight'?1:-1);
+  if(k==='Enter'||k===' '){ const r=SET[setIdx]; return r.action ? r.action() : speak(rowText(r, true)); }
+  if(k==='Escape') return back();
+  SND.err(); speak('Flechas arriba y abajo para elegir. Escape para volver.');
+}
+function back(){
+  SND.back();
+  if(prevScreen==='game'){ show('game'); speak(`Volviste al ejercicio. ${board.name}.`); }
+  else goHome();
+}
+function goHome(){
+  stopFlag = true; hush(); SND.back(); show('home');
+  speak(`Menú. ${menuIdx+1}, ${MENU[menuIdx].label}.`);
+}
+
+/* ---------- ejercicio: dibujo ---------- */
+const isRock = (x,y) => board.rocks.some(r=>r[0]===x&&r[1]===y);
+const isGoal = p => board.goals.some(g=>eq(g,p));
+function renderBoard(){
+  const el = $('#board');
+  el.style.setProperty('--cols', board.cols);
+  el.classList.toggle('editing', editing);
+  let h = '<div></div>';
+  for(let x=0;x<board.cols;x++) h += `<div class="hd">${x+1}</div>`;
+  for(let y=0;y<board.rows;y++){
+    h += `<div class="hd">${y+1}</div>`;
+    for(let x=0;x<board.cols;x++){
+      const p=[x,y], cls=['cell'];
+      if(trail.some(t=>eq(t,p))) cls.push('trail');
+      if(fx.cell && eq(fx.cell,p)) cls.push(fx.cls);
+      if(editing && eq(cursor,p)) cls.push('cur');
+      let inner = '';
+      if(isRock(x,y)) inner += ICONS.rock;
+      if(isGoal(p)) inner += (!editing && got.has(key(p))) ? ICONS.goalGot : ICONS.goal;
+      if(eq(editing ? board.start : pos, p)) inner += ICONS.hero;
+      h += `<div class="${cls.join(' ')}" data-x="${x}" data-y="${y}">${inner}</div>`;
+    }
+  }
+  el.innerHTML = h;
+  $('#chalName').textContent = board.name;
+  $('#starChip').textContent = `★ ${got.size} de ${total()}`;
+}
+function renderProg(){
+  const el = $('#prog');
+  if(!program.length){
+    el.innerHTML = `<li class="empty">${mode==='programa' ? 'Todavía no hay pasos. Apretá las flechas para agregar.' : 'En modo práctica el personaje se mueve con cada flecha.'}</li>`;
+  } else {
+    el.innerHTML = program.map((it,i)=>{
+      if(it.type==='move') return `<li class="blk${active&&active.i===i?' active':''}"><span class="ar">${DIRS[it.dir].ar}</span>${DIRS[it.dir].name}</li>`;
+      const a = active && active.i===i && active.j==null ? ' active':'';
+      const state = it===open ? (awaitingCount ? '<small>apretá un número</small>' : '<small>abierto · Enter para cerrar</small>') : '';
+      const body = it.body.map((b,j)=>`<li class="blk${active&&active.i===i&&active.j===j?' active':''}"><span class="ar">${DIRS[b.dir].ar}</span>${DIRS[b.dir].name}</li>`).join('');
+      return `<li class="rep${a}"><div class="rep-h">↻ repetir ${it.times??'?'} veces ${state}</div><ol class="inner">${body||'<li class="empty">vacío</li>'}</ol></li>`;
+    }).join('');
+  }
+  const n = countSteps();
+  $('#count').textContent = n ? `${n} ${plural(n,'bloque','bloques')}` : '';
+}
+function render(){ renderBoard(); renderProg(); }
+
+/* ---------- ejercicio: acciones ---------- */
+function resetPos(){ pos=[...board.start]; trail=[]; got=new Set(); fx={cell:null,cls:''}; active=null; dirty=false; closeEnd(); }
+
+/* --- al terminar el ejercicio --- */
+function nextBoard(){ const l = allBoards(); const i = l.findIndex(b=>b.id===board.id); return i>=0 && i<l.length-1 ? l[i+1] : null; }
+const END = [
+  {label:'Volver a empezar', sub:()=>'El mismo desafío, desde el principio'},
+  {label:'Siguiente nivel', sub:()=> nextBoard() ? nextBoard().name : 'Era el último: volvés al primero'},
+  {label:'Crear un ejercicio', sub:()=>'Armar un tablero nuevo'}
+];
+function renderEnd(){
+  $('#endList').innerHTML = END.map((o,i)=>`<li class="opt${i===endIdx?' sel':''}"><button class="main" data-e="${i}"><span class="num">${i+1}</span><span class="lab"><b>${o.label}</b><small>${o.sub()}</small></span></button></li>`).join('');
+}
+function openEnd(){
+  endOpen = true; endIdx = 1; $('#endPanel').hidden = false; renderEnd();
+  return speak('¿Qué querés hacer ahora? 1, volver a empezar. 2, siguiente nivel. 3, crear un ejercicio. Apretá el número, o elegí con las flechas y Enter.', 'good');
+}
+function closeEnd(){ endOpen = false; const p = $('#endPanel'); if(p) p.hidden = true; }
+function activateEnd(i){
+  closeEnd(); SND.enter();
+  if(i===0) return restart();
+  if(i===1) return nextLevel();
+  if(i===2) return startCreate(true);
+}
+function nextLevel(){
+  const nb = nextBoard(), first = !nb;
+  loadBoard(nb || allBoards()[0], false); setMode(mode, false);
+  speak(`${first?'¡Terminaste todos los desafíos! Volvemos al primero. ':'Siguiente nivel. '}${board.name}. ${board.intro||''} Pedile a tu acompañante que arme el tablero. ${describe()} ${modePrompt()}`);
+}
+function endKey(k){
+  if(k==='ArrowDown'||k==='ArrowUp'){ endIdx = (endIdx + (k==='ArrowDown'?1:-1) + END.length) % END.length; SND.move(); renderEnd(); return speak(`${endIdx+1}, ${END[endIdx].label}. ${END[endIdx].sub()}.`); }
+  if(k==='Enter'||k===' ') return activateEnd(endIdx);
+  if(/^[1-3]$/.test(k)) return activateEnd(+k-1);
+  SND.err(); speak('1, volver a empezar. 2, siguiente nivel. 3, crear un ejercicio.');
+}
+$('#endList').addEventListener('click', e=>{ audio(); const b = e.target.closest('[data-e]'); if(b) activateEnd(+b.dataset.e); $('#game').focus(); });
+function setMode(m, announce=true){
+  mode = m; open=null; awaitingCount=false; program=[];
+  resetPos();
+  $('#modeChip').textContent = m==='programa' ? 'Modo programa' : 'Modo práctica';
+  $('#modeChip').classList.toggle('practica', m==='practica');
+  $('#mProg').setAttribute('aria-pressed', m==='programa');
+  $('#mPrac').setAttribute('aria-pressed', m==='practica');
+  $('#keysProg').hidden = m!=='programa'; $('#keysPrac').hidden = m!=='practica';
+  render();
+  if(announce) speak((m==='programa'?'Modo programa. ':'Modo práctica. ') + modePrompt());
+}
+function loadBoard(b, announce=true){
+  stopFlag = true;
+  board = normalize(b); program=[]; open=null; awaitingCount=false;
+  resetPos(); render();
+  $('#chalIntro').textContent = board.intro || '';
+  $('#nameIn').value = board.custom ? board.name : '';
+  $('#delBtn').hidden = !board.custom;
+  $('#chalSel').value = board.id;
+  syncSizeSel();
+  if(announce) speak(`${board.name}. ${board.intro||''} ${describe()}`);
+}
+function restart(){
+  stopFlag = true; hush();
+  program=[]; open=null; awaitingCount=false; resetPos(); render(); SND.back();
+  speak(`Ejercicio reiniciado. El personaje volvió al inicio${total()>1?' y volvieron las estrellas':''}. ${mode==='programa'?'El programa está vacío. ':''}${modePrompt()}`);
+}
+const help = () => mode==='programa'
+  ? 'Flechas: agregar pasos. Erre y un número: repetir. Enter: cerrar el repetir o ejecutar. Retroceso: borrar el último. Espacio: escuchar el programa. Te: describir el tablero. Ene: reiniciar. Eme: modo práctica. Escape dos veces: menú.'
+  : 'Flechas: moverse. Espacio: dónde estoy. Ene o Enter: reiniciar. Te: describir el tablero. Eme: modo programa. Escape dos veces: menú.';
+
+async function moveOnce(dir){
+  const d = DIRS[dir], nx = pos[0]+d.dx, ny = pos[1]+d.dy;
+  if(nx<0||ny<0||nx>=board.cols||ny>=board.rows){
+    SND.crash(pos[0]); fx={cell:[...pos],cls:'bump'}; renderBoard();
+    await speak(`${d.name}. ¡Chocaste con la pared!`, 'bad'); return 'crash';
+  }
+  if(isRock(nx,ny)){
+    SND.crash(nx); fx={cell:[...pos],cls:'bump'}; renderBoard();
+    await speak(`${d.name}. ¡Chocaste con un obstáculo!`, 'bad'); return 'crash';
+  }
+  pos=[nx,ny]; trail.push([...pos]); fx={cell:null,cls:''};
+  SND.step(nx,ny);
+  if(isGoal(pos) && !got.has(key(pos))){
+    got.add(key(pos)); fx={cell:[...pos],cls:'pick'}; renderBoard();
+    setTimeout(()=>SND.collect(nx), 120);
+    if(!remaining().length) return 'goal';
+    const r = remaining().length;
+    await speak(`${d.name}. ¡Juntaste una estrella! Te ${r===1?'falta 1':'faltan '+r}.`, 'good');
+    return 'ok';
+  }
+  renderBoard();
+  await speak(d.name);
+  return 'ok';
+}
+async function win(extra){
+  fx={cell:[...pos],cls:'win'}; renderBoard(); setTimeout(()=>SND.win(), 250);
+  const msg = total()>1 ? '¡Juntaste todas las estrellas! ¡Muy bien!' : '¡Llegaste a la estrella! ¡Muy bien!';
+  await speak(`${msg}${extra?' '+extra:''}`, 'good');
+  if(screen==='game' && !editing) openEnd();
+}
+function flatten(){
+  const out=[];
+  program.forEach((it,i)=>{
+    if(it.type==='move') out.push({dir:it.dir,i});
+    else for(let k=0;k<it.times;k++){ out.push({lap:k+1,i}); it.body.forEach((b,j)=>out.push({dir:b.dir,i,j})); }
+  });
+  return out;
+}
+async function run(){
+  if(!program.length){ SND.err(); return speak('El programa está vacío. Agregá pasos con las flechas.'); }
+  running=true; stopFlag=false; resetPos(); render();
+  await speak('¡Vamos!');
+  const steps = flatten(); let result='end', idx=0;
+  for(; idx<steps.length; idx++){
+    if(stopFlag){ result='stop'; break; }
+    const s = steps[idx];
+    if(s.lap){ active={i:s.i,j:null}; renderProg(); SND.lap(); await speak(`Vuelta ${s.lap}`); continue; }
+    active={i:s.i,j:s.j}; renderProg();
+    const r = await moveOnce(s.dir);
+    if(r!=='ok'){ result=r; break; }
+    await wait(SPEED[S.speed].pause);
+  }
+  active=null; renderProg();
+  if(stopFlag && result!=='goal'){ running=false; dirty=true; if(screen==='game') speak('Detenido.'); return; }
+  if(result==='goal'){
+    const left = steps.slice(idx+1).some(s=>s.dir);
+    await win(left ? 'Terminaste antes: te sobraron pasos.' : '');
+  } else if(result==='crash'){
+    await wait(200); await speak('Revisá el programa y probá otra vez.', 'bad');
+  } else {
+    const n = total(), g = got.size;
+    const msg = n>1 ? `Terminó el programa. Juntaste ${g} de ${n} estrellas.` : 'Terminó el programa, pero no llegaste a la estrella.';
+    await speak(`${msg} ${whereAmI()}`, 'bad');
+  }
+  running=false; dirty=true;
+}
+function addMove(dir){
+  if(dirty) resetPos();
+  if(open){ open.body.push({type:'move',dir}); SND.addIn(dir); }
+  else { program.push({type:'move',dir}); SND.add(dir); }
+  render(); speak(DIRS[dir].name);
+}
+
+function gameKey(k, e){
+  if(editing) return editKey(k, e);
+  if(k==='Escape'){
+    if(running){ stopFlag=true; hush(); return; }
+    if(Date.now()-escAt < 3000){ escAt=0; return goHome(); }
+    escAt = Date.now(); return speak('¿Querés volver al menú? Apretá Escape otra vez.');
+  }
+  if(running) return;
+  if(endOpen) return endKey(k);
+  const low = k.toLowerCase();
+  if(low==='a') return speak(help());
+  if(low==='t') return speak(`${describe()} ${whereAmI()}`);
+  if(low==='m') return setMode(mode==='programa'?'practica':'programa');
+  if(low==='n') return restart();
+
+  if(mode==='practica'){
+    if(KEYDIR[k]){
+      if(!remaining().length) { SND.err(); return speak('Ya juntaste todas. Apretá ene para empezar de nuevo.'); }
+      running = true;
+      moveOnce(KEYDIR[k]).then(r=>{ running=false; if(r==='goal') win(); });
+      return;
+    }
+    if(k===' '){ SND.beacon(); return speak(whereAmI()); }
+    if(k==='Enter') return restart();
+    SND.err(); return speak('En modo práctica usás las flechas. Para programar apretá eme.');
+  }
+
+  if(KEYDIR[k]){
+    if(awaitingCount){ SND.err(); return speak('Primero apretá un número: cuántas veces se repite.'); }
+    return addMove(KEYDIR[k]);
+  }
+  if(low==='r'){
+    if(open){ SND.err(); return speak('Ya estás dentro de un repetir. Apretá Enter para cerrarlo.'); }
+    if(dirty) resetPos();
+    open = {type:'repeat',times:null,body:[]}; program.push(open); awaitingCount=true;
+    SND.repOpen(); render();
+    return speak('Repetir. ¿Cuántas veces? Apretá un número del 2 al 9.');
+  }
+  if(/^[0-9]$/.test(k)){
+    if(!awaitingCount){ SND.err(); return speak(open ? 'Ahora apretá las flechas de los pasos que se repiten.' : 'Para repetir, primero apretá erre.'); }
+    const n = +k;
+    if(n<2){ SND.err(); return speak('Elegí un número del 2 al 9.'); }
+    open.times=n; awaitingCount=false; SND.repOpen(); render();
+    return speak(`Repetir ${n} veces. Ahora apretá las flechas que se repiten, y Enter para cerrar.`);
+  }
+  if(k==='Enter'){
+    if(open){
+      if(awaitingCount || !open.body.length){
+        program.splice(program.indexOf(open),1); open=null; awaitingCount=false; SND.del(); render();
+        return speak('Repetir cancelado porque estaba vacío.');
+      }
+      const it=open; open=null; SND.repClose(); render();
+      return speak(`Fin del repetir. Se repite ${it.times} veces: ${it.body.map(b=>DIRS[b.dir].name).join(', ')}.`);
+    }
+    return run();
+  }
+  if(k==='Backspace'){
+    if(dirty) resetPos();
+    if(open){
+      if(!awaitingCount && open.body.length){ const b=open.body.pop(); SND.del(); render(); return speak(`Borraste ${DIRS[b.dir].name}.`); }
+      program.splice(program.indexOf(open),1); open=null; awaitingCount=false; SND.del(); render();
+      return speak('Borraste el repetir.');
+    }
+    if(!program.length){ SND.err(); return speak('No hay pasos para borrar.'); }
+    const last = program.pop(); SND.del(); render();
+    return speak(last.type==='move' ? `Borraste ${DIRS[last.dir].name}.` : `Borraste el repetir de ${last.times} veces.`);
+  }
+  if(k==='Delete'){ program=[]; open=null; awaitingCount=false; resetPos(); SND.del(); render(); return speak('Borraste todo el programa.'); }
+  if(k===' ') return speak(program.length ? `Tu programa: ${progText(program)}.` : 'El programa está vacío.');
+  SND.err(); speak('Esa tecla no hace nada. Apretá a para la ayuda.');
+}
+
+/* ---------- teclado global ---------- */
+document.addEventListener('keydown', e=>{
+  if(e.altKey||e.ctrlKey||e.metaKey) return;
+  const t = e.target;
+  if(t && t.matches && t.matches('input, select, textarea')) return;
+  const k = e.key;
+  const ours = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Enter','Backspace','Delete','Escape'].includes(k) || /^[0-9a-zA-Z]$/.test(k);
+  if(!ours) return;
+  e.preventDefault();
+  audio();
+  if(screen==='home') return homeKey(k);
+  if(screen==='instr') return instrKey(k);
+  if(screen==='settings') return setKey(k);
+  if(screen==='game') return gameKey(k, e);
+});
+const kb = () => document.body.classList.toggle('kbd-on', document.hasFocus());
+window.addEventListener('focus', kb); window.addEventListener('blur', kb); kb();
+
+/* ---------- editor ---------- */
+function syncSizeSel(){
+  const opts = (a,b)=>{ let h=''; for(let i=a;i<=b;i++) h+=`<option>${i}</option>`; return h; };
+  $('#colsSel').innerHTML = opts(2,8); $('#rowsSel').innerHTML = opts(1,8);
+  $('#colsSel').value = board.cols; $('#rowsSel').value = board.rows;
+}
+function toggleEdit(on){
+  editing = on;
+  $('#editor').hidden = !on;
+  $('#editBtn').setAttribute('aria-pressed', on);
+  $('#editBtn').textContent = on ? 'Terminar de editar' : 'Editar el tablero actual';
+  $('#modeChip').textContent = on ? 'Creando tablero' : (mode==='programa' ? 'Modo programa' : 'Modo práctica');
+  $('#keysEdit').hidden = !on;
+  $('#keysProg').hidden = on || mode!=='programa'; $('#keysPrac').hidden = on || mode!=='practica';
+  program=[]; open=null; awaitingCount=false; resetPos(); render();
+}
+function startCreate(isNew){
+  editBackup = clone(board);
+  if(isNew){
+    board = {id:null, name:'Tablero nuevo', cols:4, rows:3, start:[0,0], goals:[[3,2]], rocks:[], intro:'', hint:'', custom:false};
+    $('#nameIn').value = ''; $('#delBtn').hidden = true; syncSizeSel();
+  }
+  cursor = [...board.start];
+  toggleEdit(true); $('#game').focus();
+  speak(`${isNew?'Crear un ejercicio. Tablero nuevo':'Editar el tablero'} de ${board.cols} columnas y ${board.rows} filas. El cursor está en la ${at(cursor)}. Movelo con las flechas. E pone o saca una estrella, O un obstáculo, pe pone al personaje, be borra. Mayúscula con flechas cambia el tamaño. Espacio describe el tablero. Enter guarda y juega. Escape sale sin guardar.`);
+}
+function cellDesc(p){
+  const what = eq(p,board.start) ? 'el personaje' : isGoal(p) ? 'una estrella' : isRock(p[0],p[1]) ? 'un obstáculo' : 'vacía';
+  return `${at(p)}: ${what}`;
+}
+function applyTool(t, p){
+  const dropRock = () => board.rocks = board.rocks.filter(r=>!eq(r,p));
+  const dropGoal = () => board.goals = board.goals.filter(g=>!eq(g,p));
+  const onlyStar = isGoal(p) && board.goals.length===1;
+  if(t==='hero'){
+    if(eq(p,board.start)) return 'El personaje ya está acá.';
+    dropRock(); dropGoal(); board.start = p; ensureGoal(); return 'Pusiste al personaje acá.';
+  }
+  if(eq(p,board.start)) return 'No se puede: acá está el personaje.';
+  if(t==='goal'){
+    if(isGoal(p)){ if(onlyStar) return 'Tiene que haber al menos una estrella.'; dropGoal(); return 'Sacaste la estrella.'; }
+    dropRock(); board.goals.push(p); return `Pusiste una estrella. Hay ${board.goals.length}.`;
+  }
+  if(t==='rock'){
+    if(isRock(p[0],p[1])){ dropRock(); return 'Sacaste el obstáculo.'; }
+    if(onlyStar) return 'No se puede: es la única estrella.';
+    dropGoal(); board.rocks.push(p); return 'Pusiste un obstáculo.';
+  }
+  if(isRock(p[0],p[1])){ dropRock(); return 'Borraste el obstáculo.'; }
+  if(isGoal(p)){ if(onlyStar) return 'Tiene que haber al menos una estrella.'; dropGoal(); return 'Borraste la estrella.'; }
+  return 'Ya está vacía.';
+}
+function saveBoard(){
+  const name = $('#nameIn').value.trim() || `Mi tablero ${custom.length+1}`;
+  const b = clone(board); b.name = name; b.custom = true;
+  if(!board.custom){ b.intro=''; b.hint=''; }
+  if(board.custom && board.id){ b.id = board.id; custom = custom.map(c=>c.id===b.id?b:c); }
+  else { b.id = 'c'+Date.now(); custom.push(b); }
+  const ok = store('caminoSonoro.custom', custom);
+  board = clone(b); fillSelect(); $('#chalSel').value = b.id; $('#delBtn').hidden=false; $('#nameIn').value = name;
+  $('#saveNote').textContent = ok ? `Guardado: «${name}». Aparece en la lista de desafíos y en el menú de inicio.` : 'Este navegador no permite guardar. El tablero queda cargado hasta cerrar la página.';
+  render();
+  return name;
+}
+function editKey(k, e){
+  const low = k.toLowerCase();
+  if(KEYDIR[k] && e && e.shiftKey){
+    const c = board.cols + (k==='ArrowRight'?1:k==='ArrowLeft'?-1:0);
+    const r = board.rows + (k==='ArrowDown'?1:k==='ArrowUp'?-1:0);
+    if(c<2||c>8||r<1||r>8){ SND.err(); return speak(c<2||r<1 ? 'No se puede achicar más.' : 'No se puede agrandar más.'); }
+    $('#colsSel').value = c; $('#rowsSel').value = r; resize();
+    cursor = [Math.min(cursor[0],board.cols-1), Math.min(cursor[1],board.rows-1)]; renderBoard(); SND.move();
+    return speak(`Ahora el tablero tiene ${board.cols} ${plural(board.cols,'columna','columnas')} y ${board.rows} ${plural(board.rows,'fila','filas')}.`);
+  }
+  if(KEYDIR[k]){
+    const d = DIRS[KEYDIR[k]], nx = cursor[0]+d.dx, ny = cursor[1]+d.dy;
+    if(nx<0||ny<0||nx>=board.cols||ny>=board.rows){ SND.err(); return speak('Borde del tablero. ' + cellDesc(cursor)); }
+    cursor = [nx,ny]; SND.step(nx,ny); renderBoard(); return speak(cellDesc(cursor));
+  }
+  const tools = {e:'goal', o:'rock', p:'hero', b:'erase'};
+  if(tools[low] || k==='Backspace' || k==='Delete'){
+    const msg = applyTool(tools[low] || 'erase', [...cursor]);
+    /^(No se puede|Tiene que|Ya está|El personaje ya)/.test(msg) ? SND.err() : SND.add('up');
+    resetPos(); render(); return speak(msg);
+  }
+  if(k===' ') return speak(`${describe()} El cursor está en la ${cellDesc(cursor)}.`);
+  if(k==='Enter'){
+    const name = saveBoard(); toggleEdit(false); editBackup = null;
+    $('#chalIntro').textContent = board.intro || '';
+    SND.win();
+    return speak(`Guardaste el tablero ${name}. ¡A jugar! Pedile a tu acompañante que lo arme en la mesa. ${describe()} ${modePrompt()}`);
+  }
+  if(k==='Escape'){
+    const bk = editBackup; editBackup = null; toggleEdit(false);
+    if(bk) loadBoard(bk, false);
+    SND.back(); return speak('Saliste sin guardar. ' + board.name + '.');
+  }
+  if(low==='a') return speak('Flechas: mover el cursor. E: estrella. O: obstáculo. Pe: personaje. Be: borrar. Mayúscula con flechas: tamaño. Espacio: describir. Enter: guardar y jugar. Escape: salir sin guardar.');
+  SND.err(); speak('Esa tecla no hace nada acá. Apretá a para la ayuda.');
+}
+function ensureGoal(){
+  if(board.goals.length) return;
+  for(let y=board.rows-1;y>=0;y--) for(let x=board.cols-1;x>=0;x--){
+    const p=[x,y]; if(!eq(p,board.start) && !isRock(x,y)){ board.goals=[p]; return; }
+  }
+}
+function resize(){
+  board.cols = +$('#colsSel').value; board.rows = +$('#rowsSel').value;
+  const inside = p => p[0]<board.cols && p[1]<board.rows;
+  board.start = [Math.min(board.start[0],board.cols-1), Math.min(board.start[1],board.rows-1)];
+  board.goals = board.goals.filter(g=>inside(g) && !eq(g,board.start));
+  board.rocks = board.rocks.filter(r=>inside(r) && !eq(r,board.start) && !isGoal(r));
+  ensureGoal(); resetPos(); render();
+}
+$('#board').addEventListener('click', e=>{
+  if(!editing) return;
+  const c = e.target.closest('.cell'); if(!c) return;
+  const p = [+c.dataset.x, +c.dataset.y];
+  cursor = p; const msg = applyTool(tool, p);
+  resetPos(); render(); showSaid(msg);
+});
+document.querySelectorAll('.tools button').forEach(b=>b.addEventListener('click',()=>{
+  tool = b.dataset.tool;
+  document.querySelectorAll('.tools button').forEach(x=>x.setAttribute('aria-pressed', x===b));
+}));
+$('#colsSel').addEventListener('change', resize);
+$('#rowsSel').addEventListener('change', resize);
+$('#editBtn').addEventListener('click', ()=>{ audio(); editing ? (toggleEdit(false), editBackup=null) : startCreate(false); });
+$('#newBtn').addEventListener('click', ()=>{ audio(); if(editing) toggleEdit(false); startCreate(true); });
+$('#clearBtn').addEventListener('click', ()=>{ board.rocks=[]; render(); });
+$('#saveBtn').addEventListener('click', ()=>{ saveBoard(); editBackup = null; });
+$('#delBtn').addEventListener('click', ()=>{
+  if(!board.custom) return;
+  custom = custom.filter(c=>c.id!==board.id); store('caminoSonoro.custom', custom); fillSelect();
+  loadBoard(BUILTIN[0], false);
+  $('#saveNote').textContent = 'Desafío eliminado.';
+});
+
+/* ---------- panel docente ---------- */
+function fillSelect(){
+  let h = '<optgroup label="Desafíos">' + BUILTIN.map(b=>`<option value="${b.id}">${b.name}</option>`).join('') + '</optgroup>';
+  if(custom.length) h += '<optgroup label="Mis tableros">' + custom.map(b=>`<option value="${b.id}">${b.name.replace(/</g,'&lt;')}</option>`).join('') + '</optgroup>';
+  $('#chalSel').innerHTML = h; $('#chalSel').value = board.id;
+}
+$('#chalSel').addEventListener('change', e=>{
+  const b = allBoards().find(x=>x.id===e.target.value);
+  if(b){ if(editing) toggleEdit(false); loadBoard(b); setMode(mode,false); }
+});
+$('#mProg').addEventListener('click', ()=>{ setMode('programa'); $('#game').focus(); });
+$('#mPrac').addEventListener('click', ()=>{ setMode('practica'); $('#game').focus(); });
+$('#describeBtn').addEventListener('click', ()=>{ audio(); speak(describe()); });
+$('#hintBtn').addEventListener('click', ()=>{ audio(); speak(board.hint || `${whereAmI()}`); });
+$('#restartBtn').addEventListener('click', ()=>{ audio(); restart(); $('#game').focus(); });
+$('#homeBtn').addEventListener('click', ()=>{ audio(); goHome(); });
+$('#setBtn').addEventListener('click', ()=>{ audio(); setIdx=0; show('settings'); speak('Voz y sonido. ' + rowText(SET[0], true)); });
+
+fillSelect();
+loadBoard(BUILTIN[0], false);
+setMode('programa', false);
+show('home');
+})();
+</script>
+
+</body></html>
